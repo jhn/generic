@@ -1,3 +1,5 @@
 var resourceRouter = require('express').Router();
 
-module.exports = resourceRouter;
+module.exports = {
+  router: resourceRouter
+};
