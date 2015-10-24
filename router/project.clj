@@ -10,4 +10,5 @@
   :plugins [[lein-ring "0.9.7"]]
   :ring {:handler router.core/app
          :nrepl {:start? true
-                 :port 3001}})
+                 :port 3001}}
+  :aot [router.core])

@@ -1,7 +1,8 @@
 (ns router.core
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
-            [ring.middleware.defaults :refer [wrap-defaults site-defaults]]))
+            [ring.middleware.defaults :refer [wrap-defaults site-defaults]])
+  (:gen-class))
 
 (def app-servers
   (atom #{}))
