@@ -17,13 +17,9 @@ module.exports = function(mongoose, Field) {
   });
 
   configRouter.put('/field/:name', function(req, res, next) {
-    Field.find({ 'name': req.params.name }, function(err, field) {
-      if (err) { return res.status(404).json(err); }
-      var updated = _.merge(field, req.body);
-      updated.save(function(err, f) {
-        if (err) { return res.status(500).json(err); }
-        return res.status(200).json(f);
-      });
+    Field.findOneAndUpdate({ 'name': req.params.name }, { $set: req.body }, { upsert: true, new: true }, function(err, field) {
+      if (err) { return res.status(500).json(err); }
+      return res.status(200).json(field);
     });
   });
 
@@ -42,8 +38,9 @@ module.exports = function(mongoose, Field) {
   });
 
   configRouter.delete('/field/:name', function(req, res, next) {
-    Field.remove({ 'name': req.params.name }, function(err) {
-      if (err) { return res.status(404).json(err); }
+    Field.findOneAndRemove({ 'name': req.params.name }, {}, function(err, field) {
+      if (!field) { return res.status(404).send() }
+      if (err) { return res.status(500).json(err); }
       return res.status(204).send();
     });
   });
