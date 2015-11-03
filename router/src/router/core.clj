@@ -25,6 +25,7 @@
 (defroutes app-routes
   (GET "/status" [] (response (str @services)))
   (POST "/register" {body :body} (register-service body))
+  (POST "/start" [] (h/start-haproxy! @services))
   (route/not-found "Not Found"))
 
 (def app
