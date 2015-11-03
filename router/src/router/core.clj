@@ -23,6 +23,7 @@
            #(merge-with merge-services % new-service))))
 
 (defroutes app-routes
+  (GET "/status" [] (response (str @services)))
   (POST "/register" {body :body} (register-service body))
   (route/not-found "Not Found"))
 
