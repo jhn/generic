@@ -1,9 +1,28 @@
-var funcName = function(fun) {
-  var ret = fun.toString();
-  ret = ret.substr('function '.length);
-  ret = ret.substr(0, ret.indexOf('('));
-  ret = ret.toLowerCase();
-  return ret;
+function typeConverter(typeString) {
+  switch (typeString) {
+    case "Number":
+    case "number":
+      return "number";
+      break;
+    case "Date":
+    case "date":
+      return "date";
+      break;
+    case "Array":
+    case "array":
+      return "array";
+      break;
+    case "Boolean":
+    case "boolean":
+      return "boolean";
+      break;
+    case "Object":
+    case "object":
+      return "object";
+      break;
+    default:
+      return "string";
+  };
 }
 
 module.exports = function(Field, callback) {
@@ -12,30 +31,36 @@ module.exports = function(Field, callback) {
       validate: function(input) {
         console.log("INPUT:")
         console.log(input);
+        if (!input.hasOwnProperty("data")) {
+          console.log('Rejected for missing data object.')
+          return false;
+        }
+        var data = input.data;
         for (var i = 0; i < fields.length; i++) {
           var fieldName = fields[i].name;
-          var fieldType = funcName(fields[i].type);
+          var fieldType = typeConverter(fields[i].type);
           var required = fields[i].required;
           var regexString = fields[i].validation;
           // Check that a required field is present
-          if (required && !input.hasOwnProperty(fieldName)) {
+          if (required && !data.hasOwnProperty(fieldName)) {
             console.log('Rejected for missing required field.');
             return false;
           }
           // Check that type matches
-          if (input.hasOwnProperty(fieldName) && fieldType !== typeof input[fieldName]) {
+          var matchType = typeof data[fieldName];
+          if (data.hasOwnProperty(fieldName) && fieldType !== matchType) {
             console.log('Rejected for invalid type match.');
             return false;
           }
           // Validate regex
-          if (input.hasOwnProperty(fieldName) && regexString && !input[fieldName].match(new RegExp(regexString))) {
+          if (data.hasOwnProperty(fieldName) && regexString && !data[fieldName].match(new RegExp(regexString))) {
             console.log('Rejected for regex mismatch.');
             return false;
           }
         }
-        // Check that no additional fields are present in the input
-        for (var key in input) {
-          if (input.hasOwnProperty(key)) {
+        // Check that no additional fields are present in the input data
+        for (var key in data) {
+          if (data.hasOwnProperty(key)) {
             var passed = false;
             for (var i = 0; i < fields.length; i++) {
               if (fields[i].name === key) {
@@ -49,6 +74,7 @@ module.exports = function(Field, callback) {
           }
         }
         // Everything is good
+        console.log('Resource validated.')
         return true;
       }
     });

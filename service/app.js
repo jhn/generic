@@ -1,13 +1,14 @@
 var resourceName = process.env.GENERIC_RESOURCE_NAME;
 var resourceIDName = process.env.GENERIC_RESOURCE_ID_NAME;
 var resourceIDType = getType(process.env.GENERIC_RESOURCE_ID_TYPE);
+var servicePort = process.env.GENERIC_SERVICE_PORT;
 
 function getType(typeString) {
   switch (typeString) {
-    case "Number": 
+    case "Number":
       return Number;
       break;
-    case "Date": 
+    case "Date":
       return Date;
       break;
     case "Array":
@@ -24,9 +25,6 @@ function getType(typeString) {
   };
 }
 
-var resourceIDRegex = process.env.GENERIC_RESOURCE_ID_REGEX;
-var servicePort = process.env.GENERIC_SERVICE_PORT;
-
 var express = require('express');
 var bodyParser = require('body-parser');
 
@@ -37,16 +35,14 @@ mongoose.connect('mongodb://localhost/service-' + resourceName);
 var Schema = mongoose.Schema;
 
 var ResourceSchema = new Schema({
-  id: { type: resourceIDType, required: true },
+  [resourceIDName]: { type: resourceIDType, required: true, unique: true },
   data: { type: Object, required: true }
 });
 
 var Resource = mongoose.model('Resource', ResourceSchema);
 
-
-
 var FieldSchema = new Schema({
-  name: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
   type: { type: String, required: true },
   required: Boolean,
   validation: String
@@ -56,8 +52,8 @@ FieldSchema.add({ subfields: [FieldSchema] });
 
 var Field = mongoose.model('Field', FieldSchema);
 
-var config = require('./config')(mongoose, Field);
-var resource = require('./resource');
+var config = require('./config')(mongoose);
+var resource = require('./resource')(mongoose);
 
 var app = express();
 
