@@ -14,6 +14,7 @@ defaults
     default_backend <%= name %>-backends
 
 backend <%= name %>-backends
+    balance roundrobin
     <% (doseq [[idx out] (map-indexed vector (v :out-port))]
         %>server <%= (str name idx) %> 127.0.0.1:<%=out%> maxconn 32
     <%
