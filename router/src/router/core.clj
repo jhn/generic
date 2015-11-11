@@ -7,6 +7,13 @@
             [router.haproxy :as h])
   (:gen-class))
 
+(def services-sample
+  "Sample services map needed to generate a valid HAProxy template"
+  (hash-map
+    {:name "users-a-l" :regex "/users/[a-l]"} ["0.0.0.0:8000" "0.0.0.0:8001"]
+    {:name "users-m-z" :regex "/users/[m-z]"} ["0.0.0.0:8002" "0.0.0.0:8003"]
+    {:name "profiles"  :regex "/profiles"}    ["0.0.0.0:8004"]))
+
 (def services
   (atom {}))
 
