@@ -6,14 +6,17 @@
 (def ^:private hc
   (HAProxyController. "/usr/local/bin/"))
 
-(defn- parse [path binding]
-  (template/eval (slurp (io/resource path)) {:services binding}))
+(defn parse [source-path binding]
+  "Generates a HAProxy config with template at source-path as a string."
+  (template/eval (slurp (io/resource source-path)) {:services binding}))
 
-(defn- write [source dest bindings]
-  (spit dest (parse source bindings)))
+(defn write [source-path dest-path bindings]
+  "Writes a HAProxy config with template at source-path to dest-path."
+  (spit dest-path (parse source-path bindings)))
 
-(defn start-haproxy! [bindings]
-  (let [hc-template-path "haproxy.conf.clj"
+(defn start-haproxy! [source-path bindings]
+  "Starts a HAProxy instance with config file at /tmp/haproxy.conf"
+  (let [hc-template-path source-path
         hc-destination-path "/tmp/haproxy.conf"]
     (write  hc-template-path hc-destination-path bindings)
     (.start hc)))

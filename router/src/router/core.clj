@@ -10,22 +10,21 @@
 (def services
   (atom {}))
 
-(defn merge-services [one two]
-  (let [in (one :in-port)
-        outs (into (one :out-port) (two :out-port))]
-    {:in-port  in
-     :out-port outs}))
+(defn register-service [{name :name regex :regex out :out}]
+  (let [new-service {{:name name :regex regex} [out]}]
+    (swap! services #(merge-with concat % new-service))
+    (response {:status "ok"})))
 
-(defn register-service [{name :name in :in-port out :out-port}]
-  (let [new-service {name {:in-port  in
-                           :out-port [out]}}]
-    (swap! services
-           #(merge-with merge-services % new-service))))
+(def template-path "haproxy.route.conf.clj")
+
+(defn start [template-path bindings]
+  (h/start-haproxy! template-path bindings)
+  (response {:status "ok"}))
 
 (defroutes app-routes
   (GET "/status" [] (response (str @services)))
   (POST "/register" {body :body} (register-service body))
-  (POST "/start" [] (h/start-haproxy! @services))
+  (POST "/start" [] (start template-path @services))
   (route/not-found "Not Found"))
 
 (def app
