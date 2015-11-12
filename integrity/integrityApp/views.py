@@ -6,36 +6,80 @@ from kafka.client import KafkaClient
 from kafka.consumer import SimpleConsumer
 from kafka.producer import SimpleProducer
 import threading, logging, time
+import requests
+
+from config import kafka_address, kafka_group, kafka_topic
 
 class Consumer(threading.Thread):
 	daemon = True
 
 	def run(self):
-		client = KafkaClient("localhost:9092")
-		consumer = SimpleConsumer(client, "generic-group", "generic-topic")
+		client = KafkaClient(kafka_address)
+		consumer = SimpleConsumer(client, kafka_group, kafka_topic)
 
-	 #   implement what to do when messages come
+		for message in consumer:
+			processIncomingMessage(message)
+
+	 #   implemented what to do when messages come
 	 #   for message in consumer:
 	 #       print(message)
+
+	def processIncomingMessage(message):
+
+		event = getEvent(message)
+		mappings = readMappings()
+
+		if (sendActions(event, mappings)):
+			print 'actions delivered'
+		else :
+			print 'no action to deliver'
+
+	def sendActions(event, mappings):
+
+		flag = False
+
+		for line in mappings:
+			if(line["event"] == event):
+				endpoint = line["endpoint"]
+				field_name = line["field_name"]
+				executeAction(endpoint, field_name)
+				flag = True
+
+		return flag
+
+	def executeAction(endpoint, field_name):
+		dictToSend = {field_name:'what is the answer?'}
+		res = requests.post(endpoint, data=json.dumps(dictToSend))
+
+		return res.text
+
 
 class Producer(threading.Thread):
 	daemon = True
 
 	def run(self):
-		client = KafkaClient("localhost:9092")
-		producer = SimpleProducer(client)
+			client = KafkaClient(kafka_address)
+			producer = SimpleProducer(client)
 
-
-		#   implement what to do when needed to send messages
-		# while True:
+		#  this is to test when messages come
+		#  implement what to do when needed to send messages
+		#  while True:
 		#     producer.send_messages('generic-topic', "test")
 		#     producer.send_messages('generic-topic', "\xc2Hola, mundo!")
 
 		#     time.sleep(1)
 
 
-from config import aws_access_key_id, aws_secret_access_key 
+#from config import aws_access_key_id, aws_secret_access_key 
 from config import data_file_name
+
+def readMappings():
+	filedata = []
+	with open(data_file_name, 'r') as outfile:
+		for line in outfile:
+			filedata.append(line)
+
+	return filedata
 
 def appendToFile(data):
 	with open(data_file_name, 'a+') as outfile:
@@ -80,27 +124,39 @@ def indexPost():
 
 	return jsonify({'result': True}), 200
 
+from kafka.client import KafkaClient
+from kafka.consumer import SimpleConsumer
+
+
+def kafkaConsume():
+
+	consumer.max_buffer_size=0
+	consumer.seek(0,2)
+	for message in consumer:
+		print("OFFSET: "+str(message[0])+"\t MSG: "+str(message[1][3]))
+
+
 @app.route('/', methods=['GET', 'POST', 'PUT'])
 def index(json_string):
 
 	parsed_json = json.loads(json_string)
 	
 	threads = [
-        Producer(),
-        Consumer()
-    ]
+		Producer(),
+		Consumer()
+	]
 
-    for t in threads:
-        t.start()
+	for t in threads:
+		t.start()
 
-    time.sleep(5)
+	time.sleep(5)
 	
 	return "Hello, World!"
 
- parsed_json = json.loads(json_string
 
-  connQueue = boto.sqs.connect_to_region("us-east-1", aws_access_key_id=aws_access_key_id,aws_secret_access_key=aws_secret_access_key )
-  connSns = boto.sns.connect_to_region("us-east-1", aws_access_key_id=aws_access_key_id,aws_secret_access_key=aws_secret_access_key )
+
+  # connQueue = boto.sqs.connect_to_region("us-east-1", aws_access_key_id=aws_access_key_id,aws_secret_access_key=aws_secret_access_key )
+  # connSns = boto.sns.connect_to_region("us-east-1", aws_access_key_id=aws_access_key_id,aws_secret_access_key=aws_secret_access_key )
 	
-  genericQueue = conn.get_queue('genericQueue')
+  # genericQueue = conn.get_queue('genericQueue')
 
