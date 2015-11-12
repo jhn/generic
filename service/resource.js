@@ -45,9 +45,10 @@ module.exports = function(mongoose) {
         resource.save(function(err, r) {
           if (err) { return res.status(500).json(err); }
           producer.send({
-            "object": resourceName,
+            "resource": resourceName,
             "action": "added",
-            "id": r[resourceIDName]
+            "id": r[resourceIDName],
+            "object": toExternal(r)
           });
           return res.status(200).json(toExternal(r));
         });
