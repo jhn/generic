@@ -85,22 +85,22 @@ def index(json_string):
 
 	parsed_json = json.loads(json_string)
 	
-	# threads = [
- #        Producer(),
- #        Consumer()
- #    ]
+	threads = [
+        Producer(),
+        Consumer()
+    ]
 
- #    for t in threads:
- #        t.start()
+    for t in threads:
+        t.start()
 
- #    time.sleep(5)
+    time.sleep(5)
 	
-	# return "Hello, World!"
+	return "Hello, World!"
 
-#  parsed_json = json.loads(json_string
+ parsed_json = json.loads(json_string
 
-#   connQueue = boto.sqs.connect_to_region("us-east-1", aws_access_key_id=aws_access_key_id,aws_secret_access_key=aws_secret_access_key )
-#   connSns = boto.sns.connect_to_region("us-east-1", aws_access_key_id=aws_access_key_id,aws_secret_access_key=aws_secret_access_key )
+  connQueue = boto.sqs.connect_to_region("us-east-1", aws_access_key_id=aws_access_key_id,aws_secret_access_key=aws_secret_access_key )
+  connSns = boto.sns.connect_to_region("us-east-1", aws_access_key_id=aws_access_key_id,aws_secret_access_key=aws_secret_access_key )
 	
-#   genericQueue = conn.get_queue('genericQueue')
+  genericQueue = conn.get_queue('genericQueue')
 
