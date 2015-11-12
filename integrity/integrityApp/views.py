@@ -136,7 +136,27 @@ def kafkaConsume():
 		print("OFFSET: "+str(message[0])+"\t MSG: "+str(message[1][3]))
 
 
-@app.route('/', methods=['GET', 'POST', 'PUT'])
+
+# Make a web call to start  only Consumer
+@app.route('/startKafkaConsumer', methods=['GET'])
+def startKafkaConsumer():
+	newConsumer = Consumer()
+
+	consumer.start()
+
+	return "Consumer in Kafka has started!"
+
+# Make a web call to start  only Producer
+@app.route('/startKafkaProducer', methods=['GET'])
+def startKafkaProducer():
+	newProducer = Producer()
+
+	producer.start()
+
+	return "Producer in Kafka has started!"	
+
+# Make a web call to start Consumer and Producer
+@app.route('/', methods=['GET'])
 def index(json_string):
 
 	parsed_json = json.loads(json_string)
@@ -148,15 +168,9 @@ def index(json_string):
 
 	for t in threads:
 		t.start()
+	
+	return "Producer and Consumer in Kafka has started!"
 
 	time.sleep(5)
-	
-	return "Hello, World!"
 
-
-
-  # connQueue = boto.sqs.connect_to_region("us-east-1", aws_access_key_id=aws_access_key_id,aws_secret_access_key=aws_secret_access_key )
-  # connSns = boto.sns.connect_to_region("us-east-1", aws_access_key_id=aws_access_key_id,aws_secret_access_key=aws_secret_access_key )
-	
-  # genericQueue = conn.get_queue('genericQueue')
 
