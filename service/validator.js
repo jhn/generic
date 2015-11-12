@@ -19,7 +19,7 @@ module.exports = function(Field, callback) {
             return false;
           }
           // Check that type matches
-          var matchType = typeof input[fieldName];
+          var matchType = Array.isArray(input[fieldName]) ? 'array' : typeof input[fieldName];
           if (input.hasOwnProperty(fieldName) && fieldType !== matchType) {
             console.log('Rejected for invalid type match.');
             return false;
