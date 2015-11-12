@@ -30,7 +30,7 @@ var bodyParser = require('body-parser');
 
 var mongoose = require('mongoose');
 
-mongoose.connect('mongodb://localhost/service-' + resourceName);
+mongoose.connect('mongodb://localhost/service-' + resourceName + servicePort);
 
 var Schema = mongoose.Schema;
 

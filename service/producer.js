@@ -1,4 +1,4 @@
-var kafka = require('kafke-node'),
+var kafka = require('kafka-node'),
     HighLevelProducer = kafka.HighLevelProducer,
     client = new kafka.Client(process.env.GENERIC_KAFKA_ZK, process.env.GENERIC_RESOURCE_NAME),
     producer = new HighLevelProducer(client),
@@ -10,7 +10,7 @@ producer.on('ready', function() {
 
 module.exports = {
   send: function(evt) {
-    producer.send([{ topic: kafkaTopic, messages: evt }], function(err, data) {
+    producer.send([{ topic: kafkaTopic, messages: JSON.stringify(evt) }], function(err, data) {
       if (err) console.log(err);
     });
   }
