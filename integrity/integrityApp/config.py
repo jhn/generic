@@ -6,6 +6,6 @@ aws_secret_access_key = ''
 data_file_name = 'data_file'
 
 #kafka address
-kafka_address = 'localhost:9999'
-kafka_group = 'group1'
-kafka_topic = 'topic1'
+kafka_address = '192.168.33.10:9092'
+kafka_group = 'hello_group_consumer'
+kafka_topic = 'test_test'

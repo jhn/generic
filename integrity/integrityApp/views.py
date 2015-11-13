@@ -18,41 +18,191 @@ class Consumer(threading.Thread):
 		consumer = SimpleConsumer(client, kafka_group, kafka_topic)
 
 		for message in consumer:
-			processIncomingMessage(message)
+			
+			print "message received:\n"
+			print message[1][3]
+			print '-----------------------\n'
+			self.processIncomingMessage(message)
+			# Mark this message as fully consumed
+			#consumer.task_done(message)
 
 	 #   implemented what to do when messages come
 	 #   for message in consumer:
 	 #       print(message)
 
-	def processIncomingMessage(message):
+	def getAction(self, message):
+		jsonfile = json.loads(message[1][3])
 
-		event = getEvent(message)
+		return jsonfile['action']
+
+	def getObject(self, message):
+		jsonfile = json.loads(message[1][3])
+
+		return jsonfile['object']
+
+	def getOldObject(self, message):
+		jsonfile = json.loads(message[1][3])
+
+		return jsonfile['old_object']
+
+	def getNewObject(self, message):
+		jsonfile = json.loads(message[1][3])
+
+		return jsonfile['new_object']
+
+	def getResource(self, message):
+		jsonfile = json.loads(message[1][3])
+
+		return jsonfile['resource']
+
+	def getID(self, message):
+		jsonfile = json.loads(message[1][3])
+
+		return jsonfile['id']
+
+	def join_jsons(self, json1, json2):
+
+		newList = []
+
+		for it1 in json1:
+			newList.append(it1)
+
+		for it2 in json2:
+			newList.append(it2)
+
+		return newList
+
+	def remove_json(self, jsonLong, json):
+
+		newList = []
+
+		for it in jsonLong :
+			if it != json :
+				newList.append(it)
+
+		return newList
+
+	def processIncomingMessage(self, message):
+
+		resource = self.getResource(message)
+		action = self.getAction(message)
+
 		mappings = readMappings()
-
-		if (sendActions(event, mappings)):
-			print 'actions delivered'
+		print 'action ' + str(action)
+		print 'resource ' + str(resource)
+		
+		if (self.sendActions(message, resource, action, mappings)):
+		 	print 'actions delivered'
 		else :
 			print 'no action to deliver'
 
-	def sendActions(event, mappings):
+	def sendActions(self, message, resource, action, mappings):
 
 		flag = False
 
-		for line in mappings:
-			if(line["event"] == event):
-				endpoint = line["endpoint"]
-				field_name = line["field_name"]
-				executeAction(endpoint, field_name)
+		for lineitem in mappings:
+			#print lineitem
+			line = json.loads(lineitem)
+			
+			print line['event']
+			print line["event"]["resource"]
+			if(line["event"]["resource"] == resource and line["event"]["action"] == action):
+				endpoint = line["action"]["endpoint"]
+				field_name = line["action"]["field_name"]
 				flag = True
-
+				print 'endpoint: ' + str(endpoint)
+				print 'field_name: ' + str(field_name)
+				self.executeAction(message, resource, action, endpoint, field_name, line)
+				
 		return flag
 
-	def executeAction(endpoint, field_name):
+	def executeAction(self, message, resource, action, endpoint, field_name, mapping):
+
+		rID = self.getID(message)
+		print "target id: " + str(rID)
+
+		if ( action == 'removed'):
+			print 'executing removed\n'
+			
+			result = requests.get(endpoint)
+			#resultjson = result.json()
+			#resultfield = resultjson[field_name]
+
+			for item in resultjson:
+
+				newList = item[field_name]
+				
+				if rID in newList:
+	
+					putList = self.remove_json(newList, rID);
+					final_endpoint = str(endpoint) + '/' + str(item['id'])
+
+					itemresult = requests.put(final_endpoint, data = putlist)
+
+		elif (action == 'added'):
+			print 'executing added\n'
+			modified_field_name = mapping['event']['modified_field_name']
+			print 'modified_field_name: ' + str(modified_field_name)
+
+			objectVar = self.getObject(message)
+			modified_field_list = objectVar[modified_field_name]
+			for element in modified_field_list:
+				print element
+				final_endpoint = str(endpoint) + '/' +str(element)
+				print final_endpoint
+				
+#				GET Request
+				reqGet = requests.get(endpoint)
+				field_to_change = reqGet[field_name]
+				print 'field_to_change: ' + str(field_to_change) + ' + '+ str(rId)
+
+#				PUT Request
+				putData = self.join_jsons(field_to_change, rID)
+				putRes = requests.put(endpoint, data=json.dumps(putData))
+	
+		
+		elif (action == 'modified'):
+			print 'executing modified\n'
+			modified_field_name = mapping['event']['modified_field_name']
+			print 'modified_field_name: ' + str(modified_field_name)
+			old_object = self.getNewObject(message)
+			new_object = self.getOldObject(message)
+
+			list_old = old_object[modified_field_name]
+			list_new = new_object[modified_field_name]
+
+			for deletes in list_old :
+				final_endpoint = str(endpoint) + str('/') + str(deletes)
+				result = requests.get(final_endpoint)
+
+				#resultjson = result.json()
+				#resultfield = resultjson[field_name]
+
+				newList = result[field_name]	
+				putList = self.remove_json(newList, rID);
+				itemresult = requests.put(final_endpoint, data = putlist)
+
+			for inserts in list_new:
+				final_endpoint = str(endpoint) + str('/') + str(inserts)
+				result = requests.get(final_endpoint)
+
+				#resultjson = result.json()
+				#resultfield = resultjson[field_name]
+
+				newList = result[field_name]	
+				putList = self.join_jsons(newList, rID);
+				itemresult = requests.put(final_endpoint, data = putlist)
+
+
+		else :
+			print 'ERROR UNKNOWN ACTION'
+			return 'NULL'
+
 		dictToSend = {field_name:'what is the answer?'}
-		res = requests.post(endpoint, data=json.dumps(dictToSend))
+		#res = requests.post(endpoint, data=json.dumps(dictToSend))
 
-		return res.text
-
+		#return res.text
+		return 'success'
 
 class Producer(threading.Thread):
 	daemon = True
@@ -110,7 +260,7 @@ def editFile(data):
 		outfile.write("%s\n" % line)
 	outfile.close() 
 
-@app.route('/indexPost', methods=['GET', 'POST', 'PUT'])
+@app.route('/config', methods=['GET', 'POST', 'PUT'])
 def indexPost():
 	if not request.json or not 'event' in request.json:
 		abort(400)
@@ -140,9 +290,12 @@ def kafkaConsume():
 # Make a web call to start  only Consumer
 @app.route('/startKafkaConsumer', methods=['GET'])
 def startKafkaConsumer():
+	
+	print "Consumer in Kafka is starting!"
+
 	newConsumer = Consumer()
 
-	consumer.start()
+	newConsumer.start()
 
 	return "Consumer in Kafka has started!"
 
@@ -157,17 +310,19 @@ def startKafkaProducer():
 
 # Make a web call to start Consumer and Producer
 @app.route('/', methods=['GET'])
-def index(json_string):
+def index():
 
-	parsed_json = json.loads(json_string)
+	# return "hello" 
+
+	# parsed_json = json.loads(json_string)
 	
-	threads = [
-		Producer(),
-		Consumer()
-	]
+	# threads = [
+	# 	Producer(),
+	# 	Consumer()
+	# ]
 
-	for t in threads:
-		t.start()
+	# for t in threads:
+	# 	t.start()
 	
 	return "Producer and Consumer in Kafka has started!"
 

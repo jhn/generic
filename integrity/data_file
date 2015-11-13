@@ -1,15 +1,5 @@
-{"event": "xyz", "pass": "zzzzzz"}
-{"event": "xyz2", "pass": "x32qwqwqyz"}
-{"event": "xyz111", "pass": "x32qwqwqyz"}
-{"event": "xyz4", "pass": "xyz4"}
-{"event": "xyz2", "pass": "zzzzzz"}
-{"event": "xyz", "pass": "zzzzzz"}
-{"event": "xyz2", "pass": "x32qwqwqyz"}
-{"event": "xyz111", "pass": "x32qwqwqyz"}
-{"event": "xyz4", "pass": "xyz4"}
-{"event": "xyz", "pass": "zzzzzz"}
-{"event": "xyz23", "pass": "zzzzzz"}
-{"event": "xyz2", "pass": "x32qwqwqyz"}
-{"event": "xyz111", "pass": "x32qwqwqyz"}
-{"event": "xyz4", "pass": "xyz4"}
-{"event": "xyz77", "pass": "zzzzzz"}
+{"action": {"endpoint": "localhost:5000/course", "field_name": "students"}, "event": {"action": "removed", "resource": "student"}}
+{"action": {"endpoint": "localhost:5000/student", "field_name": "courses"}, "event": {"action": "removed", "resource": "course"}}
+{"action": {"endpoint": "localhost:5000/course", "field_name": "student"}, "event": {"action": "removed", "resource": "student"}}
+{"action": {"endpoint": "localhost:5000/course", "field_name": "students"}, "event": {"action": "added", "resource": "student", "modified_field_name": "courses"}}
+{"event": "xyz", "pass": "xyz11212"}
