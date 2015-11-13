@@ -10,11 +10,3 @@ export GENERIC_KAFKA_TOPIC=test
 cmd="node app.js"
 
 $cmd &
-
-sleep 3
-
-address="http://localhost:$PORT/config/field"
-echo $address
-curl -X POST -H "Content-type: application/json" --data "{\"name\": \"first\",\"required\": true,\"type\": \"String\",\"subfields\": []}" $address
-curl -X POST -H "Content-type: application/json" --data "{\"name\": \"last\",\"required\": true,\"type\": \"String\",\"subfields\": []}" $address
-curl -X POST -H "Content-type: application/json" --data "{\"name\": \"courses\",\"required\": true,\"type\": \"Array\",\"subfields\": []}" $address
