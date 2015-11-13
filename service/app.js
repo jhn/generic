@@ -60,7 +60,7 @@ var app = express();
 app.use(bodyParser.urlencoded());
 app.use(bodyParser.json());
 
-app.use('/config', config.router);
+app.use('/' + resourceName + '/config', config.router);
 app.use('/' + resourceName, resource.router);
 
 app.listen(servicePort ? servicePort : 3000, function() {
