@@ -36,12 +36,17 @@
   (h/reload-haproxy! template-path bindings)
   (response {:status "ok"}))
 
+(defn reset-router! []
+  (reset! services {})
+  (response {:status "ok"}))
+
 (defroutes app-routes
   (GET "/status" [] (response (str @services)))
   (POST "/register" {body :body} (register-service body))
   (POST "/start"  [] (start! template-path @services))
   (POST "/stop"   [] (stop!))
   (POST "/reload" [] (reload! template-path @services))
+  (POST "/reset" [] (reset-router!))
   (route/not-found "Not Found"))
 
 (def app

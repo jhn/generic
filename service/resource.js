@@ -71,7 +71,7 @@ module.exports = function(mongoose) {
           resource.save(function(err, saved) {
             if (err) { return res.status(500).json(err); }
             producer.send({
-              "object": resourceName,
+              "resource": resourceName,
               "action": "modified",
               "id": saved[resourceIDName],
               "old_object": toExternal(unmodified),
@@ -107,7 +107,7 @@ module.exports = function(mongoose) {
         if (!resource) { return res.status(404).send('resource does not exist.') }
         if (err) { return res.status(500).json(err); }
         producer.send({
-          "object": resourceName,
+          "resource": resourceName,
           "action": "removed",
           "id": resource[resourceIDName]
         });
