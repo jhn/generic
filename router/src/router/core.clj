@@ -24,14 +24,29 @@
 
 (def template-path "haproxy.route.conf.clj")
 
-(defn start [template-path bindings]
+(defn start! [template-path bindings]
   (h/start-haproxy! template-path bindings)
+  (response {:status "ok"}))
+
+(defn stop! []
+  (h/stop-haproxy!)
+  (response {:status "ok"}))
+
+(defn reload! [template-path bindings]
+  (h/reload-haproxy! template-path bindings)
+  (response {:status "ok"}))
+
+(defn reset-router! []
+  (reset! services {})
   (response {:status "ok"}))
 
 (defroutes app-routes
   (GET "/status" [] (response (str @services)))
   (POST "/register" {body :body} (register-service body))
-  (POST "/start" [] (start template-path @services))
+  (POST "/start"  [] (start! template-path @services))
+  (POST "/stop"   [] (stop!))
+  (POST "/reload" [] (reload! template-path @services))
+  (POST "/reset" [] (reset-router!))
   (route/not-found "Not Found"))
 
 (def app

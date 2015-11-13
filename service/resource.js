@@ -8,6 +8,7 @@ module.exports = function(mongoose) {
     var resourceIDRegex = process.env.GENERIC_RESOURCE_ID_REGEX;
     var Field = mongoose.model('Field');
     var Resource = mongoose.model('Resource');
+    var producer = require('./producer');
 
     var toExternal = function(internal) {
       var external = JSON.parse(JSON.stringify(internal.data));
@@ -43,6 +44,12 @@ module.exports = function(mongoose) {
         var resource = new Resource(toInternal(req.body));
         resource.save(function(err, r) {
           if (err) { return res.status(500).json(err); }
+          producer.send({
+            "resource": resourceName,
+            "action": "added",
+            "id": r[resourceIDName],
+            "object": toExternal(r)
+          });
           return res.status(200).json(toExternal(r));
         });
       });
@@ -53,6 +60,7 @@ module.exports = function(mongoose) {
         Resource.findOne({ [resourceIDName]: req.params.id }, function(err, resource) {
           if (!resource) { return res.status(404).send('Resource not found.'); }
           if (err) { return res.status(500).json(err); }
+          var unmodified = JSON.parse(JSON.stringify(resource));
           var merged = mergeResource(toExternal(resource), req.body);
           if (!validator.validate(merged)) {
             return res.status(400).send('Message body contains an invalid resource.');
@@ -62,6 +70,13 @@ module.exports = function(mongoose) {
           resource.data = merged;
           resource.save(function(err, saved) {
             if (err) { return res.status(500).json(err); }
+            producer.send({
+              "resource": resourceName,
+              "action": "modified",
+              "id": saved[resourceIDName],
+              "old_object": toExternal(unmodified),
+              "new_object": toExternal(saved)
+            });
             return res.status(200).json(toExternal(saved));
           });
         });
@@ -91,6 +106,11 @@ module.exports = function(mongoose) {
       Resource.findOneAndRemove({ [resourceIDName]: req.params.id }, {}, function(err, resource) {
         if (!resource) { return res.status(404).send('resource does not exist.') }
         if (err) { return res.status(500).json(err); }
+        producer.send({
+          "resource": resourceName,
+          "action": "removed",
+          "id": resource[resourceIDName]
+        });
         return res.status(204).send('resource deleted.');
       });
     });
