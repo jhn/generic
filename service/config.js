@@ -26,14 +26,44 @@ module.exports = function(mongoose) {
       var field = new Field(req.body);
       field.save(function(e, f) {
         if (e) { return res.status(500).json(e); }
+        if (f.required) {
+            var defaultValue = (function() {
+                switch(f.type) {
+                    case 'String': return '""'; break;
+                    case 'Number': return 0; break;
+                    case 'Boolean': return false; break;
+                    case 'Array': return []; break;
+                    case 'Object': return {}; break;
+                    case 'Date': return new Date(0); break;
+                }
+            })();
+            mongoose.connection.db.eval('function() { db.resources.find({}).forEach(function(e) { var temp = e.data; temp["' + f.name + '"] = ' + defaultValue + '; e.data = temp; db.resources.save(e); }) }');
+        }
         return res.status(200).json(toExternal(f));
       });
     })
   });
 
   configRouter.put('/field/:name', function(req, res, next) {
-    Field.findOneAndUpdate({ 'name': req.params.name }, { $set: req.body }, { upsert: true, new: true }, function(err, field) {
+    Field.findOneAndUpdate({ 'name': req.params.name }, { $set: req.body }, { upsert: false, new: true }, function(err, field) {
       if (err) { return res.status(500).json(err); }
+      if (!field) { return res.status(404).send('field does not exist.'); }
+      if (req.params.name !== field.name) {
+          mongoose.connection.db.eval('function() { db.resources.find({}).forEach(function(e) { var temp = e.data; temp["' + field.name + '"] = temp["' + req.params.name + '"]; delete temp["' + req.params.name + '"]; e.data = temp; db.resources.save(e); }) }')
+      }
+      if (field.required) {
+          var defaultValue = (function() {
+              switch(field.type) {
+                  case 'String': return '""'; break;
+                  case 'Number': return 0; break;
+                  case 'Boolean': return false; break;
+                  case 'Array': return []; break;
+                  case 'Object': return {}; break;
+                  case 'Date': return new Date(0); break;
+              }
+          })();
+          mongoose.connection.db.eval('function() { db.resources.find({}).forEach(function(e) { var temp = e.data; if (!temp.hasOwnProperty("' + field.name + '")) { temp["' + field.name + '"] = ' + defaultValue + '; e.data = temp; db.resources.save(e); } }) }');
+      }
       return res.status(200).json(toExternal(field));
     });
   });
@@ -58,7 +88,7 @@ module.exports = function(mongoose) {
     Field.findOneAndRemove({ 'name': req.params.name }, {}, function(err, field) {
       if (!field) { return res.status(404).send('field does not exist.') }
       if (err) { return res.status(500).json(err); }
-      mongoose.connection.db.eval('function() { db.resource.find({}).forEach(function(e) { var temp = e.data; delete temp[' + req.params.name + ']; e.data = temp; db.resource.save(e); }) }');
+      mongoose.connection.db.eval('function() { db.resources.find({}).forEach(function(e) { var temp = e.data; delete temp["' + req.params.name + '"]; e.data = temp; db.resources.save(e); }) }');
       return res.status(204).send('field deleted.');
     });
   });
