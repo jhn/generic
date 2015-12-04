@@ -11,4 +11,7 @@ pom.xml.asc
 .hg/
 *.iml
 */.idea
-
+dynamo.sh
+ddbclean.sh
+node_modules/
+kafka*/
