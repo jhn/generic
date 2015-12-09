@@ -329,4 +329,5 @@ def index():
 
 	time.sleep(5)
 
+import sqs_setup
 
