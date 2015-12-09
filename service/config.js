@@ -89,7 +89,7 @@ module.exports = function(mongoose) {
       if (!field) { return res.status(404).send('field does not exist.') }
       if (err) { return res.status(500).json(err); }
       mongoose.connection.db.eval('function() { db.resources.find({}).forEach(function(e) { var temp = e.data; delete temp["' + req.params.name + '"]; e.data = temp; db.resources.save(e); }) }');
-      return res.status(204).send('field deleted.');
+      return res.status(200).send('field deleted.');
     });
   });
 
