@@ -104,8 +104,9 @@ class Consumer(threading.Thread):
 			#print lineitem
 			line = json.loads(lineitem)
 			
+			print line
 			print line['event']
-			print line["event"]["resource"]
+			print line['event']['resource']
 			if(line["event"]["resource"] == resource and line["event"]["action"] == action):
 				endpoint = line["action"]["endpoint"]
 				field_name = line["action"]["field_name"]
@@ -125,7 +126,7 @@ class Consumer(threading.Thread):
 			print 'executing removed\n'
 			
 			result = requests.get(endpoint)
-			#resultjson = result.json()
+			resultjson = result.json()
 			#resultfield = resultjson[field_name]
 
 			for item in resultjson:

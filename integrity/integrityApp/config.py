@@ -7,5 +7,5 @@ data_file_name = 'data_file'
 
 #kafka address
 kafka_address = '192.168.33.10:9092'
-kafka_group = 'hello_group_consumer'
-kafka_topic = 'test_test'
+kafka_group = 'student_consumer'
+kafka_topic = 'student'
