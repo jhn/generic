@@ -90,6 +90,16 @@ module.exports = function(ddb) {
       if (err) { return res.status(500).json(err); }
       ddb.deleteItem('field', req.params.name, null, {}, function(err, field) {
         if (err) { return res.status(500).json(err); }
+        ddb.scan('resource', {}, function(err, resources) {
+          for (var i = 0; i < resources.items.length; i++) {
+            if (resources.items[i].hasOwnProperty(req.params.name)) {
+              delete resources.items[i][req.params.name]
+              ddb.putItem('resource', resources.items[i], {}, function(err, r) {
+                if (err) { return res.status(500).json(err); }
+              });
+            }
+          }
+        });
         return res.status(200).send('field deleted.');
       });
     });
