@@ -44,39 +44,23 @@ module.exports = function(ddb) {
       if (err) return res.status(500).json(err);
       if (!r) { return res.status(404).send('field does not exist.'); }
 
-      var updateObj = {};
-
       for (var key in req.body) {
         if (req.body.hasOwnProperty(key)) {
           if (key === 'required') {
-            req.body[key] = req.body[key] ? "true" : "false";
+            r[key] = req.body[key] ? "true" : "false";
           }
-          if (['required', 'type', 'validation'].indexOf(key) > -1) {
-            if (r.hasOwnProperty(key)) {
-              updateObj[key] = { value: req.body[key], action: 'PUT' };
-              r[key] = req.body[key];
-            } else {
-              updateObj[key] = { value: req.body[key] };
-              r[key] = req.body[key];
-            }
+          if (['type', 'validation', 'name'].indexOf(key) > -1) {
+            r[key] = req.body[key];
           }
         }
       }
 
-      ddb.updateItem('field', req.params.name, null, updateObj, {}, function(err, ur, cap) {
+      ddb.deleteItem('field', req.params.name, null, {}, function(err, dr) {
         if (err) return res.status(500).json(err);
-        if (req.body.hasOwnProperty('name')) {
-          ddb.deleteItem('field', req.params.name, null, {}, function(err, dr) {
-            if (err) return res.status(500).json(err);
-            r['name'] = req.body.name
-            ddb.putItem('field', r, {}, function(err, pr) {
-              if (err) return res.status(500).json(err);
-              return res.status(200).json(toExternal(r));
-            });
-          });
-        } else {
+        ddb.putItem('field', r, {}, function(err, pr) {
+          if (err) return res.status(500).json(err);
           return res.status(200).json(toExternal(r));
-        }
+        });
       });
     });
   });
