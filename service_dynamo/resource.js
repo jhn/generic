@@ -6,7 +6,7 @@ module.exports = function(ddb) {
     var resourceIDName = process.env.GENERIC_RESOURCE_ID_NAME;
     var resourceIDType = process.env.GENERIC_RESOURCE_ID_TYPE;
     var resourceIDRegex = process.env.GENERIC_RESOURCE_ID_REGEX;
-    var producer = require('./producer');
+    // var producer = require('./producer');
 
     var mergeResource = function(original, updated) {
       var result = original;
@@ -32,12 +32,12 @@ module.exports = function(ddb) {
         }
         ddb.putItem('resource', resource, {}, function(err, r) {
           if (err) { return res.status(500).json(err); }
-          producer.send({
-            "resource": resourceName,
-            "action": "added",
-            "id": resource[resourceIDName],
-            "object": resource
-          });
+          // producer.send({
+          //   "resource": resourceName,
+          //   "action": "added",
+          //   "id": resource[resourceIDName],
+          //   "object": resource
+          // });
           return res.status(200).json(resource);
         });
       });
@@ -63,13 +63,13 @@ module.exports = function(ddb) {
             if (err) return res.status(500).json(err);
             ddb.putItem('resource', merged, {}, function(err, pr) {
               if (err) return res.status(500).json(err);
-              producer.send({
-                "resource": resourceName,
-                "action": "modified",
-                "id": merged[resourceIDName],
-                "old_object": unmodified,
-                "new_object": merged
-              });
+              // producer.send({
+              //   "resource": resourceName,
+              //   "action": "modified",
+              //   "id": merged[resourceIDName],
+              //   "old_object": unmodified,
+              //   "new_object": merged
+              // });
               return res.status(200).json(merged);
             });
           });
@@ -102,11 +102,11 @@ module.exports = function(ddb) {
         if (err) { return res.status(500).json(err); }
         ddb.deleteItem('resource', req.params.id, null, {}, function(err, r) {
           if (err) { return res.status(500).json(err); }
-          producer.send({
-            "resource": resourceName,
-            "action": "removed",
-            "id": resource[resourceIDName]
-          });
+          // producer.send({
+          //   "resource": resourceName,
+          //   "action": "removed",
+          //   "id": resource[resourceIDName]
+          // });
           return res.status(200).send('resource deleted.');
         });
       });

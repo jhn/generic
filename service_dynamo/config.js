@@ -34,6 +34,26 @@ module.exports = function(ddb) {
 
       ddb.putItem('field', field, {}, function(err, r) {
         if (err) { return res.status(500).json(err); }
+        if (field.required === 'true') {
+            var defaultValue = (function() {
+                switch(field.type) {
+                    case 'String': return '-'; break;
+                    case 'Number': return 0; break;
+                    case 'Boolean': return 'false'; break;
+                    case 'Array': return JSON.stringify([]); break;
+                    case 'Object': return JSON.stringify({}); break;
+                    case 'Date': return JSON.stringify(new Date(0)); break;
+                }
+            })();
+            ddb.scan('resource', {}, function(err, resources) {
+              for (var i = 0; i < resources.items.length; i++) {
+                resources.items[i][field.name] = defaultValue;
+                ddb.putItem('resource', resources.items[i], {}, function(err, r) {
+                  if (err) { return res.status(500).json(err); }
+                });
+              }
+            });
+          }
         return res.status(200).json(toExternal(field));
       });
     });
@@ -59,6 +79,28 @@ module.exports = function(ddb) {
         if (err) return res.status(500).json(err);
         ddb.putItem('field', r, {}, function(err, pr) {
           if (err) return res.status(500).json(err);
+          if (r.required === 'true') {
+              var defaultValue = (function() {
+                  switch(r.type) {
+                      case 'String': return '-'; break;
+                      case 'Number': return 0; break;
+                      case 'Boolean': return 'false'; break;
+                      case 'Array': return JSON.stringify([]); break;
+                      case 'Object': return JSON.stringify({}); break;
+                      case 'Date': return JSON.stringify(new Date(0)); break;
+                  }
+              })();
+              ddb.scan('resource', {}, function(err, resources) {
+                for (var i = 0; i < resources.items.length; i++) {
+                  if (!resources.items[i].hasOwnProperty(r.name)) {
+                    resources.items[i][r.name] = defaultValue;
+                    ddb.putItem('resource', resources.items[i], {}, function(err, r) {
+                      if (err) { return res.status(500).json(err); }
+                    });
+                  }
+                }
+              });
+            }
           return res.status(200).json(toExternal(r));
         });
       });
