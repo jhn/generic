@@ -11,7 +11,7 @@ module.exports = function(ddb, callback) {
         for (var i = 0; i < fields.items.length; i++) {
           var fieldName = fields.items[i].name;
           var fieldType = fields.items[i].type.toLowerCase()
-          var required = fields.items[i].required;
+          var required = fields.items[i].required === 'true' ? true : false;
           var regexString = fields.items[i].validation;
           // Check that a required field is present
           if (required && !input.hasOwnProperty(fieldName)) {

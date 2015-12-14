@@ -18,6 +18,26 @@ module.exports = function(ddb) {
       return result;
     };
 
+    function toInternal(obj) {
+      obj = JSON.parse(JSON.stringify(obj));
+      for (key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          obj[key] = JSON.stringify(obj[key]);
+        }
+      }
+      return obj;
+    }
+
+    function toExternal(obj) {
+      obj = JSON.parse(JSON.stringify(obj));
+      for (key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          obj[key] = JSON.parse(obj[key]);
+        }
+      }
+      return obj;
+    }
+
     resourceRouter.post('/', function(req, res, next) {
       require('./validator')(ddb, function(validator) {
         validResource = validator.validate(req.body);
@@ -30,7 +50,7 @@ module.exports = function(ddb) {
             resource[key] = req.body[key];
           }
         }
-        ddb.putItem('resource', resource, {}, function(err, r) {
+        ddb.putItem('resource', toInternal(resource), {}, function(err, r) {
           if (err) { return res.status(500).json(err); }
           // producer.send({
           //   "resource": resourceName,
@@ -49,6 +69,7 @@ module.exports = function(ddb) {
           if (err) return res.status(500).json(err);
           if (!unmodified) { return res.status(404).send('field does not exist.'); }
 
+          unmodified = toExternal(unmodified);
           var merged = JSON.parse(JSON.stringify(unmodified));
           for (var key in req.body) {
             if (req.body.hasOwnProperty(key)) {
@@ -61,7 +82,7 @@ module.exports = function(ddb) {
 
           ddb.deleteItem('resource', req.params.id, null, {}, function(err, dr) {
             if (err) return res.status(500).json(err);
-            ddb.putItem('resource', merged, {}, function(err, pr) {
+            ddb.putItem('resource', toInternal(merged), {}, function(err, pr) {
               if (err) return res.status(500).json(err);
               // producer.send({
               //   "resource": resourceName,
@@ -81,7 +102,7 @@ module.exports = function(ddb) {
       ddb.scan('resource', {}, function(err, resources) {
         if (err) { return res.status(500).json(err); }
         if (resources.items) {
-          return res.status(200).json(resources.items);
+          return res.status(200).json(resources.items.map(toExternal));
         } else {
           return res.status(200).json(resources);
         }
@@ -92,7 +113,7 @@ module.exports = function(ddb) {
       ddb.getItem('resource', req.params.id, null, {}, function(err, resource) {
         if (!resource) { return res.status(404).send('field does not exist.') }
         if (err) { return res.status(500).json(err); }
-        return res.status(200).json(resource);
+        return res.status(200).json(toExternal(resource));
       });
     });
 
