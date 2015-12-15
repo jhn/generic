@@ -36,14 +36,14 @@ var Schema = mongoose.Schema;
 
 var ResourceSchema = new Schema({
   [resourceIDName]: { type: resourceIDType, required: true, unique: true },
-  tenantId: { type: String, required: true },
+  tenantid: { type: String, required: true },
   data: { type: Object, required: true }
 });
 
 var Resource = mongoose.model('Resource', ResourceSchema);
 
 var FieldSchema = new Schema({
-  tenantId: { type: String, required: true },
+  tenantid: { type: String, required: true },
   name: { type: String, required: true },
   type: { type: String, required: true },
   required: Boolean,

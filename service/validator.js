@@ -1,5 +1,5 @@
-module.exports = function(Field, tenantId, callback) {
-  Field.find({ tenantId: tenantId }, function(err, fields) {
+module.exports = function(Field, tenantid, callback) {
+  Field.find({ tenantid: tenantid }, function(err, fields) {
     callback({
       validate: function(input) {
         if (!input[process.env.GENERIC_RESOURCE_ID_NAME]) {

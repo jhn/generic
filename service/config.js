@@ -9,27 +9,27 @@ module.exports = function(mongoose) {
 
   var toExternal = function(internal) {
     var result = JSON.parse(JSON.stringify(internal));
-    delete result.tenantId;
+    delete result.tenantid;
     delete result._id;
     delete result.__v;
     return result;
   };
 
   configRouter.post('/field', function(req, res, next) {
-    var tenantId = req.headers['tenantId'];
-    if (!tenantId) {
+    var tenantid = req.headers['tenantid'];
+    if (!tenantid) {
       return res.status(400).send('tenant id is missing');
     }
     if (req.body.name === resourceIDName) {
       return res.status(400).send('name cannot be the id name');
     }
-    Field.findOne({ name: req.body.name, tenantId: tenantId }, function (err, person) {
+    Field.findOne({ name: req.body.name, tenantid: tenantid }, function (err, person) {
       if (err) res.status(500).json(err);
       if (person) {
         return res.status(400).send('name parameter must be unique.');
       }
       var fieldData = req.body;
-      fieldData['tenantId'] = tenantId;
+      fieldData['tenantid'] = tenantid;
       var field = new Field(fieldData);
       field.save(function(e, f) {
         if (e) { return res.status(500).json(e); }
@@ -44,7 +44,7 @@ module.exports = function(mongoose) {
                     case 'Date': return new Date(0); break;
                 }
             })();
-            mongoose.connection.db.eval('function() { db.resources.find({ tenantId: ' + tenantId + ' }).forEach(function(e) { var temp = e.data; temp["' + f.name + '"] = ' + defaultValue + '; e.data = temp; db.resources.save(e); }) }');
+            mongoose.connection.db.eval('function() { db.resources.find({ tenantid: ' + tenantid + ' }).forEach(function(e) { var temp = e.data; temp["' + f.name + '"] = ' + defaultValue + '; e.data = temp; db.resources.save(e); }) }');
         }
         return res.status(200).json(toExternal(f));
       });
@@ -52,17 +52,17 @@ module.exports = function(mongoose) {
   });
 
   configRouter.put('/field/:name', function(req, res, next) {
-    var tenantId = req.headers['tenantId'];
-    if (!tenantId) {
+    var tenantid = req.headers['tenantid'];
+    if (!tenantid) {
       return res.status(400).send('tenant id is missing');
     }
     var fieldData = req.body;
-    fieldData['tenantId'] = tenantId;
-    Field.findOneAndUpdate({ name: req.params.name, tenantId: tenantId }, { $set: fieldData }, { upsert: false, new: true }, function(err, field) {
+    fieldData['tenantid'] = tenantid;
+    Field.findOneAndUpdate({ name: req.params.name, tenantid: tenantid }, { $set: fieldData }, { upsert: false, new: true }, function(err, field) {
       if (err) { return res.status(500).json(err); }
       if (!field) { return res.status(404).send('field does not exist.'); }
       if (req.params.name !== field.name) {
-          mongoose.connection.db.eval('function() { db.resources.find({ tenantId: ' + tenantId + ' }).forEach(function(e) { var temp = e.data; temp["' + field.name + '"] = temp["' + req.params.name + '"]; delete temp["' + req.params.name + '"]; e.data = temp; db.resources.save(e); }) }')
+          mongoose.connection.db.eval('function() { db.resources.find({ tenantid: ' + tenantid + ' }).forEach(function(e) { var temp = e.data; temp["' + field.name + '"] = temp["' + req.params.name + '"]; delete temp["' + req.params.name + '"]; e.data = temp; db.resources.save(e); }) }')
       }
       if (field.required) {
           var defaultValue = (function() {
@@ -75,18 +75,18 @@ module.exports = function(mongoose) {
                   case 'Date': return new Date(0); break;
               }
           })();
-          mongoose.connection.db.eval('function() { db.resources.find({ tenantId: ' + tenantId + ' }).forEach(function(e) { var temp = e.data; if (!temp.hasOwnProperty("' + field.name + '")) { temp["' + field.name + '"] = ' + defaultValue + '; e.data = temp; db.resources.save(e); } }) }');
+          mongoose.connection.db.eval('function() { db.resources.find({ tenantid: ' + tenantid + ' }).forEach(function(e) { var temp = e.data; if (!temp.hasOwnProperty("' + field.name + '")) { temp["' + field.name + '"] = ' + defaultValue + '; e.data = temp; db.resources.save(e); } }) }');
       }
       return res.status(200).json(toExternal(field));
     });
   });
 
   configRouter.get('/field/', function(req, res, next) {
-    var tenantId = req.headers['tenantId'];
-    if (!tenantId) {
+    var tenantid = req.headers['tenantid'];
+    if (!tenantid) {
       return res.status(400).send('tenant id is missing');
     }
-    Field.find({ tenantId: tenantId }, function(err, fields) {
+    Field.find({ tenantid: tenantid }, function(err, fields) {
       if (err) { return res.status(500).json(err); }
       var result = fields.map(toExternal);
       return res.status(200).json(result);
@@ -94,11 +94,11 @@ module.exports = function(mongoose) {
   });
 
   configRouter.get('/field/:name', function(req, res, next) {
-    var tenantId = req.headers['tenantId'];
-    if (!tenantId) {
+    var tenantid = req.headers['tenantid'];
+    if (!tenantid) {
       return res.status(400).send('tenant id is missing');
     }
-    Field.findOne({ name: req.params.name, tenantId: tenantId }, function(err, field) {
+    Field.findOne({ name: req.params.name, tenantid: tenantid }, function(err, field) {
       if (!field) { return res.status(404).send('field does not exist.') }
       if (err) { return res.status(500).json(err); }
       return res.status(200).json(toExternal(field));
@@ -106,14 +106,14 @@ module.exports = function(mongoose) {
   });
 
   configRouter.delete('/field/:name', function(req, res, next) {
-    var tenantId = req.headers['tenantId'];
-    if (!tenantId) {
+    var tenantid = req.headers['tenantid'];
+    if (!tenantid) {
       return res.status(400).send('tenant id is missing');
     }
-    Field.findOneAndRemove({ name: req.params.name, tenantId: tenantId }, {}, function(err, field) {
+    Field.findOneAndRemove({ name: req.params.name, tenantid: tenantid }, {}, function(err, field) {
       if (!field) { return res.status(404).send('field does not exist.') }
       if (err) { return res.status(500).json(err); }
-      mongoose.connection.db.eval('function() { db.resources.find({ tenantId: ' + tenantId + ' }).forEach(function(e) { var temp = e.data; delete temp["' + req.params.name + '"]; e.data = temp; db.resources.save(e); }) }');
+      mongoose.connection.db.eval('function() { db.resources.find({ tenantid: ' + tenantid + ' }).forEach(function(e) { var temp = e.data; delete temp["' + req.params.name + '"]; e.data = temp; db.resources.save(e); }) }');
       return res.status(200).send('field deleted.');
     });
   });

@@ -8,7 +8,7 @@ module.exports = function(mongoose) {
     var resourceIDRegex = process.env.GENERIC_RESOURCE_ID_REGEX;
     var Field = mongoose.model('Field');
     var Resource = mongoose.model('Resource');
-    var producer = require('./producer');
+    // var producer = require('./producer');
 
     var toExternal = function(internal) {
       var external = JSON.parse(JSON.stringify(internal.data));
@@ -16,12 +16,12 @@ module.exports = function(mongoose) {
       return external;
     };
 
-    var toInternal = function(external, tenantId) {
+    var toInternal = function(external, tenantid) {
       var resourceWithoutId = JSON.parse(JSON.stringify(external));
       delete resourceWithoutId[resourceIDName];
       return {
         [resourceIDName]: external[resourceIDName],
-        tenantId: tenantId,
+        tenantid: tenantid,
         data: resourceWithoutId
       };
     }
@@ -37,37 +37,37 @@ module.exports = function(mongoose) {
     };
 
     resourceRouter.post('/', function(req, res, next) {
-      var tenantId = req.headers['tenantId'];
-      if (!tenantId) {
+      var tenantid = req.headers['tenantid'];
+      if (!tenantid) {
         return res.status(400).send('tenant id is missing');
       }
-      require('./validator')(Field, tenantId, function(validator) {
+      require('./validator')(Field, tenantid, function(validator) {
         validResource = validator.validate(req.body);
         if (!validResource) {
           return res.status(400).send('Message body contains an invalid resource.');
         }
-        var resource = new Resource(toInternal(req.body, tenantId));
+        var resource = new Resource(toInternal(req.body, tenantid));
         resource.save(function(err, r) {
           if (err) { return res.status(500).json(err); }
-          producer.send({
-            tenantId: tenantId,
-            resource: resourceName,
-            action: "added",
-            id: r[resourceIDName],
-            object: toExternal(r)
-          });
+        //   producer.send({
+        //     tenantid: tenantid,
+        //     resource: resourceName,
+        //     action: "added",
+        //     id: r[resourceIDName],
+        //     object: toExternal(r)
+        //   });
           return res.status(200).json(toExternal(r));
         });
       });
     });
 
     resourceRouter.put('/:id', function(req, res, next) {
-      var tenantId = req.headers['tenantId'];
-      if (!tenantId) {
+      var tenantid = req.headers['tenantid'];
+      if (!tenantid) {
         return res.status(400).send('tenant id is missing');
       }
-      require('./validator')(Field, tenantId, function(validator) {
-        Resource.findOne({ [resourceIDName]: req.params.id, tenantId: tenantId }, function(err, resource) {
+      require('./validator')(Field, tenantid, function(validator) {
+        Resource.findOne({ [resourceIDName]: req.params.id, tenantid: tenantid }, function(err, resource) {
           if (!resource) { return res.status(404).send('Resource not found.'); }
           if (err) { return res.status(500).json(err); }
           var unmodified = JSON.parse(JSON.stringify(resource));
@@ -80,14 +80,14 @@ module.exports = function(mongoose) {
           resource.data = merged;
           resource.save(function(err, saved) {
             if (err) { return res.status(500).json(err); }
-            producer.send({
-              tenantId: tenantId
-              resource: resourceName,
-              action: "modified",
-              id: saved[resourceIDName],
-              old_object: toExternal(unmodified),
-              new_object: toExternal(saved)
-            });
+            // producer.send({
+            //   tenantid: tenantid,
+            //   resource: resourceName,
+            //   action: "modified",
+            //   id: saved[resourceIDName],
+            //   old_object: toExternal(unmodified),
+            //   new_object: toExternal(saved)
+            // });
             return res.status(200).json(toExternal(saved));
           });
         });
@@ -99,22 +99,22 @@ module.exports = function(mongoose) {
     });
 
     resourceRouter.get('/', function(req, res, next) {
-      var tenantId = req.headers['tenantId'];
-      if (!tenantId) {
+      var tenantid = req.headers['tenantid'];
+      if (!tenantid) {
         return res.status(400).send('tenant id is missing');
       }
-      Resource.find({ tenantId: tenantId }, function(err, resources) {
+      Resource.find({ tenantid: tenantid }, function(err, resources) {
         if (err) { return res.status(500).json(err); }
         return res.status(200).json(resources.map(toExternal));
       });
     });
 
     resourceRouter.get('/:id', function(req, res, next) {
-      var tenantId = req.headers['tenantId'];
-      if (!tenantId) {
+      var tenantid = req.headers['tenantid'];
+      if (!tenantid) {
         return res.status(400).send('tenant id is missing');
       }
-      Resource.findOne({ [resourceIDName]: req.params.id, tenantId: tenantId }, function(err, resource) {
+      Resource.findOne({ [resourceIDName]: req.params.id, tenantid: tenantid }, function(err, resource) {
         if (!resource) { return res.status(404).send('resource does not exist.') }
         if (err) { return res.status(500).json(err); }
         return res.status(200).json(toExternal(resource));
@@ -122,19 +122,19 @@ module.exports = function(mongoose) {
     });
 
     resourceRouter.delete('/:id', function(req, res, next) {
-      var tenantId = req.headers['tenantId'];
-      if (!tenantId) {
+      var tenantid = req.headers['tenantid'];
+      if (!tenantid) {
         return res.status(400).send('tenant id is missing');
       }
-      Resource.findOneAndRemove({ [resourceIDName]: req.params.id, tenantId: tenantId }, {}, function(err, resource) {
+      Resource.findOneAndRemove({ [resourceIDName]: req.params.id, tenantid: tenantid }, {}, function(err, resource) {
         if (!resource) { return res.status(404).send('resource does not exist.') }
         if (err) { return res.status(500).json(err); }
-        producer.send({
-          tenantId: tenantId
-          resource: resourceName,
-          action: "removed",
-          id: resource[resourceIDName]
-        });
+        // producer.send({
+        //   tenantid: tenantid,
+        //   resource: resourceName,
+        //   action: "removed",
+        //   id: resource[resourceIDName]
+        // });
         return res.status(204).send('resource deleted.');
       });
     });
