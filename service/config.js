@@ -44,7 +44,7 @@ module.exports = function(mongoose) {
                     case 'Date': return new Date(0); break;
                 }
             })();
-            mongoose.connection.db.eval('function() { db.resources.find({ tenantid: ' + tenantid + ' }).forEach(function(e) { var temp = e.data; temp["' + f.name + '"] = ' + defaultValue + '; e.data = temp; db.resources.save(e); }) }');
+            mongoose.connection.db.eval('function() { db.resources.find({ tenantid: "' + tenantid + '" }).forEach(function(e) { var temp = e.data; temp["' + f.name + '"] = ' + defaultValue + '; e.data = temp; db.resources.save(e); }) }');
         }
         return res.status(200).json(toExternal(f));
       });
@@ -62,7 +62,7 @@ module.exports = function(mongoose) {
       if (err) { return res.status(500).json(err); }
       if (!field) { return res.status(404).send('field does not exist.'); }
       if (req.params.name !== field.name) {
-          mongoose.connection.db.eval('function() { db.resources.find({ tenantid: ' + tenantid + ' }).forEach(function(e) { var temp = e.data; temp["' + field.name + '"] = temp["' + req.params.name + '"]; delete temp["' + req.params.name + '"]; e.data = temp; db.resources.save(e); }) }')
+          mongoose.connection.db.eval('function() { db.resources.find({ tenantid: "' + tenantid + '" }).forEach(function(e) { var temp = e.data; temp["' + field.name + '"] = temp["' + req.params.name + '"]; delete temp["' + req.params.name + '"]; e.data = temp; db.resources.save(e); }) }')
       }
       if (field.required) {
           var defaultValue = (function() {
@@ -75,7 +75,7 @@ module.exports = function(mongoose) {
                   case 'Date': return new Date(0); break;
               }
           })();
-          mongoose.connection.db.eval('function() { db.resources.find({ tenantid: ' + tenantid + ' }).forEach(function(e) { var temp = e.data; if (!temp.hasOwnProperty("' + field.name + '")) { temp["' + field.name + '"] = ' + defaultValue + '; e.data = temp; db.resources.save(e); } }) }');
+          mongoose.connection.db.eval('function() { db.resources.find({ tenantid: "' + tenantid + '" }).forEach(function(e) { var temp = e.data; if (!temp.hasOwnProperty("' + field.name + '")) { temp["' + field.name + '"] = ' + defaultValue + '; e.data = temp; db.resources.save(e); } }) }');
       }
       return res.status(200).json(toExternal(field));
     });
@@ -113,7 +113,7 @@ module.exports = function(mongoose) {
     Field.findOneAndRemove({ name: req.params.name, tenantid: tenantid }, {}, function(err, field) {
       if (!field) { return res.status(404).send('field does not exist.') }
       if (err) { return res.status(500).json(err); }
-      mongoose.connection.db.eval('function() { db.resources.find({ tenantid: ' + tenantid + ' }).forEach(function(e) { var temp = e.data; delete temp["' + req.params.name + '"]; e.data = temp; db.resources.save(e); }) }');
+      mongoose.connection.db.eval('function() { db.resources.find({ tenantid: "' + tenantid + '" }).forEach(function(e) { var temp = e.data; delete temp["' + req.params.name + '"]; e.data = temp; db.resources.save(e); }) }');
       return res.status(200).send('field deleted.');
     });
   });
