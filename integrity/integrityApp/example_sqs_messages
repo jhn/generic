@@ -1,0 +1,54 @@
+
+{
+"action":"GET",
+"endpoint":"http://160.39.183.216:8099/loan",
+"body": "n/a",
+"headers":{"Content-Type":"application/json",
+"tenantid":"JPMChase"},
+"message_id":"message2",
+"output_queue":"outq2"
+}
+
+{
+"action":"GET",
+"endpoint":"http://160.39.183.216:8099/loan",
+"body": "n/a",
+"headers":{"Content-Type":"application/json",
+"tenantid":"Fidelity"},
+"message_id":"message3",
+"output_queue":"outq3"
+}
+
+{
+"action":"POST",
+"endpoint":"http://160.39.183.216:8099/loan",
+"body":{"policy_owner": "Ozen, Emre",
+"local_branch": "123 Close By Street, New York, NY 10000",
+"remaining_loan_balance": 4322, "lid": "241113"},
+"headers":{"Content-Type":"application/json",
+"tenantid":"Fidelity"},
+"message_id":"message3",
+"output_queue":"outq1"
+}
+
+{
+"action":"PUT",
+"endpoint":"http://160.39.183.216:8099/loan/241113",
+"body":{"local_branch": "666 Hell Ave, New York, NY 10000"},
+"headers":{"Content-Type":"application/json",
+"tenantid":"Fidelity"},
+"message_id":"message3232",
+"output_queue":"outq1"
+}
+
+{
+"action":"DELETE",
+"endpoint":"http://160.39.183.216:8099/loan/12347890",
+"body":"n/a",
+"headers":{"Content-Type":"application/json",
+"tenantid":"Fidelity"},
+"message_id":"message3232",
+"output_queue":"outq3"
+}
+
+
